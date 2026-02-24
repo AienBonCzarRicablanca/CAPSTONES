@@ -5,46 +5,85 @@ set -e
 # Docker Entrypoint for Laravel on Render + Aiven MySQL
 # ---------------------------------------------------------------
 
+APP_DIR=/var/www/html
+
 # --- Aiven SSL Certificate Setup ---
-# If DB_SSL_CA_BASE64 is provided (base64-encoded ca.pem from Aiven console),
-# write it to a file and point MYSQL_ATTR_SSL_CA to it.
+SSL_CA_PATH=/etc/ssl/certs/aiven-ca.pem
 if [ -n "$DB_SSL_CA_BASE64" ]; then
     echo "[entrypoint] Writing Aiven CA certificate..."
-    # Strip all whitespace/newlines from the base64 string before decoding
     CLEAN_B64=$(echo "$DB_SSL_CA_BASE64" | tr -d ' \t\n\r')
-    echo "$CLEAN_B64" | base64 -d > /etc/ssl/certs/aiven-ca.pem 2>/dev/null
-    if [ $? -eq 0 ] && [ -s /etc/ssl/certs/aiven-ca.pem ]; then
-        export MYSQL_ATTR_SSL_CA=/etc/ssl/certs/aiven-ca.pem
-        echo "[entrypoint] MYSQL_ATTR_SSL_CA set to /etc/ssl/certs/aiven-ca.pem"
+    echo "$CLEAN_B64" | base64 -d > "$SSL_CA_PATH" 2>/dev/null
+    if [ $? -eq 0 ] && [ -s "$SSL_CA_PATH" ]; then
+        echo "[entrypoint] Aiven CA cert written OK"
     else
-        echo "[entrypoint] WARNING: DB_SSL_CA_BASE64 could not be decoded - skipping SSL cert"
+        echo "[entrypoint] WARNING: Could not decode DB_SSL_CA_BASE64 - skipping SSL cert"
+        SSL_CA_PATH=""
         rm -f /etc/ssl/certs/aiven-ca.pem
     fi
+else
+    SSL_CA_PATH=""
 fi
 
-# --- Generate APP_KEY if not already set ---
-if [ -z "$APP_KEY" ]; then
-    echo "[entrypoint] Generating application key..."
-    php artisan key:generate --force
-fi
+# --- Write .env file from Render environment variables ---
+# Apache does not forward shell env vars to PHP, so we write them
+# explicitly into .env so Laravel's dotenv loader always finds them.
+echo "[entrypoint] Writing .env from environment variables..."
+cat > "$APP_DIR/.env" <<EOF
+APP_NAME="${APP_NAME:-LMS}"
+APP_ENV="${APP_ENV:-production}"
+APP_KEY="${APP_KEY}"
+APP_DEBUG="${APP_DEBUG:-false}"
+APP_URL="${APP_URL:-http://localhost}"
 
-# --- Clear and cache config for production ---
+LOG_CHANNEL=${LOG_CHANNEL:-stderr}
+LOG_DEPRECATIONS_CHANNEL=${LOG_DEPRECATIONS_CHANNEL:-null}
+LOG_LEVEL=${LOG_LEVEL:-error}
+
+DB_CONNECTION=${DB_CONNECTION:-mysql}
+DB_HOST=${DB_HOST:-127.0.0.1}
+DB_PORT=${DB_PORT:-3306}
+DB_DATABASE=${DB_DATABASE:-laravel}
+DB_USERNAME=${DB_USERNAME:-root}
+DB_PASSWORD=${DB_PASSWORD}
+MYSQL_ATTR_SSL_CA=${SSL_CA_PATH}
+
+LMS_ADMIN_EMAIL=${LMS_ADMIN_EMAIL:-admin@lms.local}
+LMS_ADMIN_PASSWORD=${LMS_ADMIN_PASSWORD:-password}
+
+BROADCAST_DRIVER=${BROADCAST_DRIVER:-log}
+CACHE_DRIVER=${CACHE_DRIVER:-file}
+FILESYSTEM_DISK=${FILESYSTEM_DISK:-local}
+QUEUE_CONNECTION=${QUEUE_CONNECTION:-sync}
+SESSION_DRIVER=${SESSION_DRIVER:-file}
+SESSION_LIFETIME=${SESSION_LIFETIME:-120}
+
+VOICERSS_API_KEY=${VOICERSS_API_KEY}
+
+MAIL_MAILER=${MAIL_MAILER:-smtp}
+MAIL_HOST=${MAIL_HOST:-localhost}
+MAIL_PORT=${MAIL_PORT:-587}
+MAIL_USERNAME=${MAIL_USERNAME}
+MAIL_PASSWORD=${MAIL_PASSWORD}
+MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
+MAIL_FROM_ADDRESS="${MAIL_FROM_ADDRESS:-hello@example.com}"
+MAIL_FROM_NAME="${APP_NAME:-LMS}"
+EOF
+
+echo "[entrypoint] .env written."
+
+# --- Clear config cache so Laravel reads fresh .env ---
 php artisan config:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan cache:clear
 
 # --- Run database migrations ---
 echo "[entrypoint] Running database migrations..."
 php artisan migrate --force
 
-# --- Create storage symlink (public/storage -> storage/app/public) ---
-if [ ! -L /var/www/html/public/storage ]; then
+# --- Create storage symlink ---
+if [ ! -L "$APP_DIR/public/storage" ]; then
     echo "[entrypoint] Creating storage symlink..."
     php artisan storage:link
 fi
 
 echo "[entrypoint] Startup complete. Launching Apache..."
-
-# Execute the CMD (apache2-foreground)
 exec "$@"
