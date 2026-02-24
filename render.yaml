@@ -72,7 +72,24 @@ services:
       - key: QUEUE_CONNECTION
         value: sync
       - key: FILESYSTEM_DISK
-        value: local
+        value: r2   # Use Cloudflare R2 for persistent file storage
+
+      # ---- Cloudflare R2 Persistent Storage (FREE) ----
+      # Setup: https://dash.cloudflare.com → R2 → Create Bucket
+      # Then: R2 → Manage R2 API Tokens → Create Token (read+write)
+      - key: CLOUDFLARE_R2_ACCESS_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: CLOUDFLARE_R2_BUCKET
+        sync: false
+      # Endpoint format: https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+      - key: CLOUDFLARE_R2_ENDPOINT
+        sync: false
+      # Public URL for bucket (enable R2 Public Access or use custom domain)
+      # e.g. https://pub-xxxx.r2.dev  OR  https://your-domain.com/bucket
+      - key: CLOUDFLARE_R2_URL
+        sync: false
 
       # ---- Broadcasting ----
       - key: BROADCAST_DRIVER
