@@ -51,7 +51,7 @@ WORKDIR /var/www/html
 
 # --- Layer cache: install PHP deps ---
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-interaction
+RUN composer install --no-dev --no-scripts --no-interaction --ignore-platform-reqs
 
 # --- Layer cache: install Node deps (npm ci needs postinstall for esbuild/vite) ---
 COPY package.json package-lock.json* ./
@@ -61,7 +61,7 @@ RUN npm ci
 COPY . .
 
 # Regenerate optimized autoloader now that all app files are present
-RUN composer dump-autoload --no-dev --optimize --no-scripts
+RUN composer dump-autoload --no-dev --optimize --no-scripts --ignore-platform-reqs
 
 # Create a minimal .env so Vite doesn't complain during build
 # (real secrets come from Render env vars at runtime)
