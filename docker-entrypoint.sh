@@ -7,6 +7,14 @@ set -e
 
 APP_DIR=/var/www/html
 
+# --- Debug: print received DB env vars (password masked) ---
+echo "[entrypoint] DB_HOST=${DB_HOST}"
+echo "[entrypoint] DB_PORT=${DB_PORT}"
+echo "[entrypoint] DB_DATABASE=${DB_DATABASE}"
+echo "[entrypoint] DB_USERNAME=${DB_USERNAME}"
+echo "[entrypoint] DB_PASSWORD=$(echo "$DB_PASSWORD" | cut -c1-4)****"
+echo "[entrypoint] APP_KEY=$(echo "$APP_KEY" | cut -c1-10)..."
+
 # --- Aiven SSL Certificate Setup ---
 SSL_CA_PATH=/etc/ssl/certs/aiven-ca.pem
 if [ -n "$DB_SSL_CA_BASE64" ]; then
