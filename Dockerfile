@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     libicu-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
     zip \
     unzip \
     dos2unix \
@@ -28,7 +30,8 @@ RUN docker-php-ext-install \
     gd \
     zip \
     intl \
-    xml
+    xml \
+    curl
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
