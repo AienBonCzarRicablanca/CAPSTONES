@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple TTS Test - No Dependencies</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #1f2937;
+            font-size: 32px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .subtitle {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+        .story-box {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            font-family: Georgia, serif;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #374151;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .language-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .lang-btn {
+            padding: 12px 24px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .lang-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .lang-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        .tts-button {
+            padding: 20px 48px;
+            border-radius: 9999px;
+            font-weight: bold;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .tts-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        .tts-button.speaking {
+            background: linear-gradient(to right, #dc2626, #b91c1c);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .status {
+            color: #6b7280;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .status.active {
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .success-box {
+            background: #d1fae5;
+            border: 2px solid #34d399;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 24px;
+            text-align: center;
+            color: #065f46;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Pure JavaScript Text-to-Speech</h1>
+        <p class="subtitle">Zero dependencies - Works even if CSS/JS assets fail to load</p>
+        
+        <div class="language-selector">
+            <button class="lang-btn active" onclick="setLanguage('en', this)">
+                🇬🇧 English
+            </button>
+            <button class="lang-btn" onclick="setLanguage('tl', this)">
+                🇵🇭 Tagalog
+            </button>
+        </div>
+        
+        <div class="story-box" id="story-text">
+Once upon a time, there was a happy little bird who loved to sing. Every morning, the bird would wake up and sing beautiful songs for all the other animals in the forest. The bird's songs made everyone smile and feel joyful.
+        </div>
+        
+        <div class="controls">
+            <button class="tts-button" id="tts-btn" onclick="toggleSpeech()">
+                <span id="btn-icon">▶️</span>
+                <span id="btn-text">Read Aloud</span>
+            </button>
+            
+            <div class="status" id="status-text"></div>
+        </div>
+        
+        <div class="success-box" style="display: none;" id="success-msg">
+            ✅ Text-to-Speech is working perfectly!<br>
+            Your library will work great!
+        </div>
+    </div>
+
+    <script>
+        let speaking = false;
+        let utterance = null;
+        let currentLang = 'en-US';
+        let availableVoices = [];
+        
+        // Load voices when available
+        function loadVoices() {
+            availableVoices = window.speechSynthesis.getVoices();
+            console.log('Available voices:', availableVoices.length);
+            
+            // Log Filipino/Tagalog voices for debugging
+            const filipinoVoices = availableVoices.filter(voice => 
+                voice.lang.includes('fil') || 
+                voice.lang.includes('tl') ||
+                voice.name.toLowerCase().includes('filip')
+            );
+            console.log('Filipino voices found:', filipinoVoices);
+        }
+
+        // Load voices on page load
+        loadVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function getBestVoice(langCode) {
+            // For Tagalog, try multiple strategies to find the best voice
+            if (langCode === 'fil-PH') {
+                // Strategy 1: Look for Filipino female voices (usually clearer)
+                let voice = availableVoices.find(v => 
+                    (v.lang.includes('fil') || v.lang.includes('tl')) && 
+                    (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('woman'))
+                );
+                if (voice) {
+                    console.log('Found female Filipino voice:', voice.name);
+                    return voice;
+                }
+                
+                // Strategy 2: Any Filipino voice
+                voice = availableVoices.find(v => 
+                    v.lang.includes('fil') || v.lang.includes('tl')
+                );
+                if (voice) {
+                    console.log('Found Filipino voice:', voice.name);
+                    return voice;
+                }
+                
+                // Strategy 3: Look for specific Filipino voice names
+                voice = availableVoices.find(v => 
+                    v.name.toLowerCase().includes('rosa') ||
+                    v.name.toLowerCase().includes('lani') ||
+                    v.name.toLowerCase().includes('filip')
+                );
+                if (voice) {
+                    console.log('Found named Filipino voice:', voice.name);
+                    return voice;
+                }
+                
+                // Strategy 4: Use English voice with slower rate
+                console.warn('No Filipino voice found, using English voice with adjusted settings');
+                return availableVoices.find(v => v.lang.includes('en-US')) || availableVoices[0];
+            }
+            
+            // For English
+            const voice = availableVoices.find(v => v.lang === 'en-US') || 
+                         availableVoices.find(v => v.lang.startsWith('en')) ||
+                         availableVoices[0];
+            return voice;
+        }
+        
+        const texts = {
+            'en': 'Once upon a time, there was a happy little bird who loved to sing. Every morning, the bird would wake up and sing beautiful songs for all the other animals in the forest. The bird\'s songs made everyone smile and feel joyful.',
+            'tl': 'Noong unang panahon, may isang masayang munting ibon na mahilig kumanta. Tuwing umaga, ang ibon ay gigising at kakanta ng magagandang awitin para sa lahat ng hayop sa gubat. Ang mga awitin ng ibon ay nagpapangiti at nagpapasaya sa lahat.'
+        };
+        
+        function setLanguage(lang, button) {
+            // Update language
+            currentLang = lang === 'tl' ? 'fil-PH' : 'en-US';
+            
+            // Update text
+            document.getElementById('story-text').textContent = texts[lang];
+            
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            // Stop if currently speaking
+            if (speaking) {
+                window.speechSynthesis.cancel();
+                resetButton();
+            }
+        }
+        
+        function toggleSpeech() {
+            if (speaking) {
+                window.speechSynthesis.cancel();
+                resetButton();
+                return;
+            }
+            
+            // Reload voices to ensure we have the latest
+            loadVoices();
+            
+            const text = document.getElementById('story-text').textContent;
+            const button = document.getElementById('tts-btn');
+            const btnIcon = document.getElementById('btn-icon');
+            const btnText = document.getElementById('btn-text');
+            const statusText = document.getElementById('status-text');
+            const successMsg = document.getElementById('success-msg');
+            
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = currentLang;
+            
+            // Get best available voice
+            const selectedVoice = getBestVoice(currentLang);
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                console.log('Using voice:', selectedVoice.name, selectedVoice.lang);
+            }
+            
+            // Adjust settings for better pronunciation
+            const isTagalog = currentLang === 'fil-PH';
+            if (isTagalog) {
+                utterance.rate = 0.75;  // Slower for clearer Tagalog pronunciation
+                utterance.pitch = 1.1;  // Slightly higher pitch for Filipino accent
+                utterance.volume = 1.0;
+            } else {
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+            }
+            
+            utterance.onstart = function() {
+                speaking = true;
+                button.classList.add('speaking');
+                btnIcon.textContent = '⏸️';
+                btnText.textContent = 'Stop Reading';
+                statusText.textContent = '🎵 Now reading aloud...';
+                statusText.classList.add('active');
+                successMsg.style.display = 'block';
+            };
+            
+            utterance.onend = function() {
+                resetButton();
+            };
+            
+            utterance.onerror = function(event) {
+                resetButton();
+                alert('TTS Error: ' + event.error);
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        function resetButton() {
+            speaking = false;
+            const button = document.getElementById('tts-btn');
+            const btnIcon = document.getElementById('btn-icon');
+            const btnText = document.getElementById('btn-text');
+            const statusText = document.getElementById('status-text');
+            
+            button.classList.remove('speaking');
+            btnIcon.textContent = '▶️';
+            btnText.textContent = 'Read Aloud';
+            statusText.textContent = '';
+            statusText.classList.remove('active');
+        }
+        
+        // Cleanup
+        window.addEventListener('beforeunload', function() {
+            if (speaking) {
+                window.speechSynthesis.cancel();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Loading Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .pending {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        .test-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .file-link {
+            color: #007bff;
+            text-decoration: none;
+            font-family: monospace;
+            padding: 5px 10px;
+            background: #e7f3ff;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .file-link:hover {
+            background: #d0e7ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Asset Loading Diagnostic</h1>
+        <p class="subtitle">This page tests if your Vite-built assets can load without HTTP/2 errors</p>
+        
+        <div id="manifest-test" class="test-section pending">
+            <div class="test-title">📄 Test 1: Manifest File</div>
+            <div id="manifest-result">Testing...</div>
+        </div>
+        
+        <div id="css-test" class="test-section pending">
+            <div class="test-title">🎨 Test 2: CSS File</div>
+            <div id="css-result">Testing...</div>
+        </div>
+        
+        <div id="js-test" class="test-section pending">
+            <div class="test-title">⚡ Test 3: JavaScript File</div>
+            <div id="js-result">Testing...</div>
+        </div>
+        
+        <div id="browser-test" class="test-section">
+            <div class="test-title">🌐 Browser Information</div>
+            <div id="browser-result"></div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+            <h3 style="margin-top: 0;">📋 Quick Fixes</h3>
+            <ol>
+                <li><strong>Hard Refresh:</strong> Press <code>Ctrl + F5</code> or <code>Ctrl + Shift + R</code></li>
+                <li><strong>Clear Browser Cache:</strong> <code>Ctrl + Shift + Delete</code> → Select "All time" → Clear</li>
+                <li><strong>Try Different Browser:</strong> Chrome or Edge recommended</li>
+                <li><strong>Disable Browser Extensions:</strong> Ad blockers might interfere</li>
+                <li><strong>Check Console:</strong> Press F12 and look for detailed errors</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="location.reload()">🔄 Retest</button>
+            <button onclick="window.location.href='/CAPSTONE/library'">📚 Go to Library</button>
+        </div>
+    </div>
+
+    <script>
+        // Display browser info
+        document.getElementById('browser-result').innerHTML = `
+            <div class="test-result">
+                <strong>User Agent:</strong><br>
+                ${navigator.userAgent}<br><br>
+                <strong>Platform:</strong> ${navigator.platform}<br>
+                <strong>Language:</strong> ${navigator.language}<br>
+                <strong>Online:</strong> ${navigator.onLine ? '✅ Yes' : '❌ No'}<br>
+                <strong>Speech Synthesis:</strong> ${'speechSynthesis' in window ? '✅ Supported' : '❌ Not Supported'}
+            </div>
+        `;
+
+        // Test manifest.json
+        fetch('/CAPSTONE/public/build/manifest.json')
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(data => {
+                document.getElementById('manifest-test').className = 'test-section success';
+                document.getElementById('manifest-result').innerHTML = `
+                    <div class="test-result">
+                        ✅ <strong>Success!</strong> Manifest loaded successfully<br>
+                        <a class="file-link" href="/CAPSTONE/public/build/manifest.json" target="_blank">
+                            View manifest.json
+                        </a><br>
+                        <small>Found ${Object.keys(data).length} entries</small>
+                    </div>
+                `;
+                
+                // Now test the actual CSS file
+                if (data['resources/css/app.css']) {
+                    testAsset(
+                        '/CAPSTONE/public/build/' + data['resources/css/app.css'].file,
+                        'css-test',
+                        'css-result',
+                        'CSS'
+                    );
+                }
+                
+                // Test JS file
+                if (data['resources/js/app.js']) {
+                    testAsset(
+                        '/CAPSTONE/public/build/' + data['resources/js/app.js'].file,
+                        'js-test',
+                        'js-result',
+                        'JavaScript'
+                    );
+                }
+            })
+            .catch(error => {
+                document.getElementById('manifest-test').className = 'test-section error';
+                document.getElementById('manifest-result').innerHTML = `
+                    <div class="test-result">
+                        ❌ <strong>Error:</strong> ${error.message}<br>
+                        <small>Cannot load manifest file. Build assets may not exist.</small>
+                    </div>
+                `;
+            });
+
+        function testAsset(url, testId, resultId, type) {
+            fetch(url)
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+                    }
+                })
+                .then(content => {
+                    document.getElementById(testId).className = 'test-section success';
+                    document.getElementById(resultId).innerHTML = `
+                        <div class="test-result">
+                            ✅ <strong>Success!</strong> ${type} file loaded successfully<br>
+                            <a class="file-link" href="${url}" target="_blank">
+                                ${url.split('/').pop()}
+                            </a><br>
+                            <small>Size: ${(content.length / 1024).toFixed(2)} KB</small>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    document.getElementById(testId).className = 'test-section error';
+                    document.getElementById(resultId).innerHTML = `
+                        <div class="test-result">
+                            ❌ <strong>Error:</strong> ${error.message}<br>
+                            <small>This is likely an <strong>ERR_HTTP2_PROTOCOL_ERROR</strong></small><br><br>
+                            <strong>Try these fixes:</strong><br>
+                            1. Clear browser cache (Ctrl+Shift+Delete)<br>
+                            2. Disable browser extensions<br>
+                            3. Try in Incognito mode (Ctrl+Shift+N)<br>
+                            4. Use a different browser (Chrome/Edge)<br>
+                            5. Check if WAMP is running properly
+                        </div>
+                    `;
+                });
+        }
+    </script>
+</body>
+</html>

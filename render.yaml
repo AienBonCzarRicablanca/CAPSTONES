@@ -1,0 +1,103 @@
+# ---------------------------------------------------------------
+# Render Blueprint - Laravel + Aiven MySQL
+# Docs: https://render.com/docs/blueprint-spec
+# ---------------------------------------------------------------
+# INSTRUCTIONS:
+#   1. Push this repo to GitHub
+#   2. In Render Dashboard → New → Blueprint → connect your repo
+#   3. Fill in the secret environment variables marked with `generateValue: true`
+#      or paste them manually from Aiven console & your own config
+# ---------------------------------------------------------------
+
+services:
+  - type: web
+    name: capstone-lms
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore   # Change to: oregon | ohio | frankfurt | singapore
+    plan: free          # Options: free | starter | standard | pro
+    branch: main        # Change to your default branch if different
+
+    # Render automatically injects PORT; Apache listens on 80
+    healthCheckPath: /
+
+    envVars:
+      # ---- App ----
+      - key: APP_NAME
+        value: "Text To Speech"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        # IMPORTANT: Update this to your actual Render URL after first deploy
+        # e.g.  https://capstone-lms.onrender.com
+        value: https://capstone-lms.onrender.com
+      - key: APP_KEY
+        generateValue: true   # Render will generate a secure random value
+
+      # ---- Logging ----
+      - key: LOG_CHANNEL
+        value: stderr          # Best for containerised apps (shows in Render logs)
+      - key: LOG_LEVEL
+        value: error
+
+      # ---- Aiven MySQL Database ----
+      # Copy these values from:
+      # Aiven Console → Your Service → Overview → Connection Information
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false            # Enter manually in Render dashboard (keep secret)
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false            # Mark as secret in Render dashboard
+
+      # ---- Aiven SSL Certificate ----
+      # From Aiven Console → Service → Overview → Download CA Certificate (ca.pem)
+      # Then encode it:
+      #   Linux/Mac:  base64 -w 0 ca.pem
+      #   Windows:    certutil -encodehex -f ca.pem ca_b64.txt 0x40000001
+      #               (then copy the output without headers/newlines)
+      # Paste the single-line base64 string as the value in Render dashboard
+      - key: DB_SSL_CA_BASE64
+        sync: false            # Paste base64 of Aiven ca.pem here (keep secret)
+
+      # ---- Cache / Session / Queue ----
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: SESSION_LIFETIME
+        value: "120"
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FILESYSTEM_DISK
+        value: local
+
+      # ---- Broadcasting ----
+      - key: BROADCAST_DRIVER
+        value: log
+
+      # ---- Admin Seeder ----
+      - key: LMS_ADMIN_EMAIL
+        sync: false
+      - key: LMS_ADMIN_PASSWORD
+        sync: false
+
+      # ---- VoiceRSS TTS API ----
+      - key: VOICERSS_API_KEY
+        sync: false
+
+      # ---- Mail (optional - configure when ready) ----
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_FROM_ADDRESS
+        value: hello@yourdomain.com
+      - key: MAIL_FROM_NAME
+        value: "Text To Speech"

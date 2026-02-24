@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test VoiceRSS TTS (FREE - No Credit Card!)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 32px;
+        }
+        .badge {
+            display: inline-block;
+            background: linear-gradient(to right, #10b981, #34d399);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+        .test-area {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .test-area h3 {
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .test-area p {
+            color: #6b7280;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        .test-area p strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 6px;
+        }
+        button {
+            width: 100%;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-filipino {
+            background: linear-gradient(to right, #ec4899, #8b5cf6);
+            color: white;
+        }
+        .btn-filipino:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+        }
+        .btn-english {
+            background: linear-gradient(to right, #3b82f6, #06b6d4);
+            color: white;
+        }
+        .btn-english:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+        .status {
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 14px;
+            line-height: 1.5;
+            display: none;
+        }
+        .status.loading {
+            background: #dbeafe;
+            color: #1e40af;
+            display: block;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        .setup-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fbbf24;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+        .setup-box h4 {
+            color: #92400e;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .setup-box ol {
+            color: #78350f;
+            font-size: 14px;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+        .setup-box li {
+            margin-bottom: 8px;
+        }
+        .setup-box code {
+            background: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+        .setup-box a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .setup-box a:hover {
+            text-decoration: underline;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .feature {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #166534;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center;">
+            <span class="badge">✨ FREE - No Credit Card Required!</span>
+        </div>
+        <h1>🎤 VoiceRSS TTS Test</h1>
+        <p class="subtitle">Beautiful Filipino & English voices - Completely FREE!</p>
+        
+        <div class="test-area">
+            <h3>🇵🇭 Filipino Voice Test</h3>
+            <p><strong>Ang Masayang Ibon:</strong>
+            Noong unang panahon, may isang masayang munting ibon na mahilig kumanta. Tuwing umaga, ang ibon ay gigising at kakanta ng magagandang awitin para sa lahat ng hayop sa gubat. Ang mga awitin ng ibon ay nagpapasaya sa lahat!</p>
+            <button class="btn-filipino" onclick="testTTS('filipino')">
+                <span id="icon-fil">▶️</span>
+                <span id="text-fil">Test Filipino Voice</span>
+            </button>
+        </div>
+        
+        <div class="test-area">
+            <h3>🇬🇧 English Voice Test</h3>
+            <p><strong>The Happy Bird:</strong>
+            Once upon a time, there was a happy little bird who loved to sing. Every morning, the bird would wake up and sing beautiful songs for all the animals in the forest. The bird's songs made everyone joyful!</p>
+            <button class="btn-english" onclick="testTTS('english')">
+                <span id="icon-en">▶️</span>
+                <span id="text-en">Test English Voice</span>
+            </button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="features">
+            <div class="feature">✅ 100% Free</div>
+            <div class="feature">🚫 No Credit Card</div>
+            <div class="feature">🗣️ Clear Voices</div>
+            <div class="feature">⚡ 350 Requests/Day</div>
+        </div>
+        
+        <div class="setup-box">
+            <h4>⚙️ Quick Setup (2 minutes!)</h4>
+            <ol>
+                <li>Sign up (FREE): <a href="https://www.voicerss.org/registration.aspx" target="_blank">VoiceRSS.org</a></li>
+                <li>Copy your API key from your account page</li>
+                <li>Add to <code>.env</code>: <code>VOICERSS_API_KEY=your-key</code></li>
+                <li>Run: <code>php artisan config:clear</code></li>
+                <li>Test it here! 🎉</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let currentAudio = null;
+        
+        async function testTTS(language) {
+            const isFilipino = language === 'filipino';
+            const iconEl = document.getElementById(isFilipino ? 'icon-fil' : 'icon-en');
+            const textEl = document.getElementById(isFilipino ? 'text-fil' : 'text-en');
+            const statusEl = document.getElementById('status');
+            const button = event.target.closest('button');
+            
+            // Stop current audio if playing
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            // Show loading state
+            button.disabled = true;
+            iconEl.innerHTML = '⏳';
+            iconEl.classList.add('spinning');
+            textEl.textContent = 'Generating audio...';
+            statusEl.className = 'status loading';
+            statusEl.textContent = '⏳ Calling VoiceRSS API (FREE service - no credit card needed)...';
+            
+            const texts = {
+                filipino: 'Noong unang panahon, may isang masayang munting ibon na mahilig kumanta. Tuwing umaga, ang ibon ay gigising at kakanta ng magagandang awitin para sa lahat ng hayop sa gubat. Ang mga awitin ng ibon ay nagpapasaya sa lahat!',
+                english: 'Once upon a time, there was a happy little bird who loved to sing. Every morning, the bird would wake up and sing beautiful songs for all the animals in the forest. The bird\'s songs made everyone joyful!'
+            };
+            
+            const langCodes = {
+                filipino: 'fil-PH',
+                english: 'en-US'
+            };
+            
+            try {
+                const response = await fetch('/CAPSTONE/api/tts/synthesize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: texts[language],
+                        language: langCodes[language]
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'API request failed');
+                }
+                
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ Audio generated! Voice: ' + data.voice + ' (Provider: ' + data.provider + ')';
+                
+                // Convert base64 to audio
+                const audioData = atob(data.audioContent);
+                const audioArray = new Uint8Array(audioData.length);
+                for (let i = 0; i < audioData.length; i++) {
+                    audioArray[i] = audioData.charCodeAt(i);
+                }
+                const audioBlob = new Blob([audioArray], { type: 'audio/mp3' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                currentAudio = new Audio(audioUrl);
+                
+                currentAudio.onplay = function() {
+                    iconEl.innerHTML = '🔊';
+                    iconEl.classList.remove('spinning');
+                    textEl.textContent = 'Playing...';
+                    statusEl.textContent = '🔊 Playing Filipino text-to-speech! Listen to the clear pronunciation!';
+                };
+                
+                currentAudio.onended = function() {
+                    iconEl.innerHTML = '✅';
+                    iconEl.classList.remove('spinning');
+                    textEl.textContent = isFilipino ? 'Test Filipino Voice' : 'Test English Voice';
+                    button.disabled = false;
+                    statusEl.className = 'status success';
+                    statusEl.innerHTML = '✅ <strong>Success!</strong> VoiceRSS is working perfectly!<br>Now test it in your library stories!';
+                    URL.revokeObjectURL(audioUrl);
+                };
+                
+                currentAudio.onerror = function() {
+                    throw new Error('Failed to play audio');
+                };
+                
+                await currentAudio.play();
+                button.disabled = false;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                
+                iconEl.innerHTML = '❌';
+                iconEl.classList.remove('spinning');
+                textEl.textContent = isFilipino ? 'Test Filipino Voice' : 'Test English Voice';
+                button.disabled = false;
+                
+                statusEl.className = 'status error';
+                
+                if (error.message.includes('API key not configured') || error.message.includes('Get free key')) {
+                    statusEl.innerHTML = '❌ <strong>API Key Missing!</strong><br><br>' +
+                        '📝 Quick Setup:<br>' +
+                        '1. Sign up FREE at <a href="https://www.voicerss.org/registration.aspx" target="_blank">VoiceRSS.org</a><br>' +
+                        '2. Copy your API key<br>' +
+                        '3. Add to .env: <code>VOICERSS_API_KEY=your-key</code><br>' +
+                        '4. Run: <code>php artisan config:clear</code><br><br>' +
+                        '<strong>No credit card required! Takes 2 minutes!</strong>';
+                } else if (error.message.includes('Invalid API key')) {
+                    statusEl.innerHTML = '❌ <strong>Invalid API Key!</strong><br>' +
+                        'Double-check your API key in the .env file.<br>' +
+                        'Get your key from: <a href="https://www.voicerss.org/personel/" target="_blank">VoiceRSS Account</a>';
+                } else if (error.message.includes('Daily limit reached')) {
+                    statusEl.innerHTML = '⏰ <strong>Daily Limit Reached</strong><br>' +
+                        'You\'ve used 350 free requests today.<br>' +
+                        'Resets at midnight. Upgrade at VoiceRSS for more.';
+                } else {
+                    statusEl.innerHTML = '❌ <strong>Error:</strong> ' + error.message + '<br>' +
+                        'Check browser console (F12) for details';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

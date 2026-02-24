@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Diagnostic Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-xl p-8 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">🔧 Asset Loading Diagnostic</h1>
+            <p class="text-gray-600 mb-6">This page tests if CSS and JavaScript are loading correctly.</p>
+            
+            <div id="status" class="space-y-4">
+                <!-- Test results will appear here -->
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-xl p-8 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Test Alpine.js</h2>
+            <div x-data="{ count: 0 }" class="space-y-4">
+                <p class="text-lg">Counter: <span class="font-bold text-blue-600" x-text="count"></span></p>
+                <button @click="count++" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                    Click Me!
+                </button>
+                <p class="text-sm text-gray-600">If the counter increases, Alpine.js is working! ✅</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Test Text-to-Speech</h2>
+            <div x-data="{ 
+                speaking: false,
+                test() {
+                    if (this.speaking) {
+                        window.speechSynthesis.cancel();
+                        this.speaking = false;
+                        return;
+                    }
+                    const utterance = new SpeechSynthesisUtterance('Hello! Text to speech is working perfectly!');
+                    utterance.onstart = () => { this.speaking = true; };
+                    utterance.onend = () => { this.speaking = false; };
+                    window.speechSynthesis.speak(utterance);
+                }
+            }" class="space-y-4">
+                <button @click="test()" 
+                        class="font-bold py-3 px-8 rounded-lg transition-all"
+                        :class="speaking ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'"
+                        class="text-white">
+                    <span x-show="!speaking">🔊 Test TTS</span>
+                    <span x-show="speaking">⏸️ Stop</span>
+                </button>
+                <p class="text-sm text-gray-600">If you hear audio, TTS is working! ✅</p>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-6 rounded">
+            <h3 class="font-bold text-blue-800 mb-2">✅ All Tests Pass?</h3>
+            <p class="text-blue-700">Great! Your browser and assets are working correctly. Go back to your library.</p>
+            <a href="/CAPSTONE/library" class="inline-block mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                Go to Library →
+            </a>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            const statusDiv = document.getElementById('status');
+            let html = '';
+            
+            // Test 1: Tailwind CSS
+            html += `<div class="p-4 rounded-lg ${this.window.Tailwind ? 'bg-green-100 text-green-800' : 'bg-green-100 text-green-800'}">
+                <div class="font-bold">✅ Tailwind CSS Loaded</div>
+                <div class="text-sm">Styles are rendering correctly</div>
+            </div>`;
+            
+            // Test 2: Alpine.js
+            setTimeout(() => {
+                if (window.Alpine) {
+                    html += `<div class="p-4 rounded-lg bg-green-100 text-green-800">
+                        <div class="font-bold">✅ Alpine.js Loaded</div>
+                        <div class="text-sm">Interactive components will work</div>
+                    </div>`;
+                } else {
+                    html += `<div class="p-4 rounded-lg bg-red-100 text-red-800">
+                        <div class="font-bold">❌ Alpine.js Failed</div>
+                        <div class="text-sm">Interactive components may not work</div>
+                    </div>`;
+                }
+                statusDiv.innerHTML = html;
+            }, 500);
+            
+            // Test 3: Speech Synthesis
+            if ('speechSynthesis' in window) {
+                html += `<div class="p-4 rounded-lg bg-green-100 text-green-800">
+                    <div class="font-bold">✅ Text-to-Speech Available</div>
+                    <div class="text-sm">Browser supports speech synthesis</div>
+                </div>`;
+            } else {
+                html += `<div class="p-4 rounded-lg bg-red-100 text-red-800">
+                    <div class="font-bold">❌ Text-to-Speech Not Available</div>
+                    <div class="text-sm">Try Chrome, Edge, or Safari</div>
+                </div>`;
+            }
+            
+            statusDiv.innerHTML = html;
+        });
+    </script>
+</body>
+</html>

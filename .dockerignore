@@ -1,0 +1,56 @@
+# ---------------------------------------------------------------
+# .dockerignore - excludes files from Docker build context
+# ---------------------------------------------------------------
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files (never bake secrets into image)
+.env
+.env.*
+!.env.example
+
+# Local dev caches / tools
+.phpunit.cache
+.phpunit.result.cache
+/.fleet
+/.idea
+/.vscode
+Homestead.json
+Homestead.yaml
+
+# Node / npm
+node_modules
+
+# Already-built assets (Dockerfile will build them fresh)
+/public/build
+/public/hot
+
+# Vendor (Dockerfile installs via composer)
+/vendor
+
+# Storage runtime files
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*.php
+
+# Docker meta files (not needed inside image, but entrypoint IS needed)
+Dockerfile
+.dockerignore
+render.yaml
+docker-compose*.yml
+
+# SSL certs
+*.pem
+*.crt
+
+# Docs / markdown extras
+*.md
+DATASET_DOWNLOAD_GUIDE.md
+HTTP2_ERROR_FIX.md
+QUICK_START_WHISPER.md
+READING_ASSESSMENT_*.md
+VOICERSS_SETUP.md

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover { transform: scale(1.05); }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .stop-btn {
+            background: linear-gradient(to right, #dc3545, #c82333);
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            min-height: 150px;
+        }
+        .voice-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Text-to-Speech Test Page</h1>
+        
+        <div id="status" class="status info">
+            Checking browser compatibility...
+        </div>
+
+        <div id="controls" style="display: none;">
+            <h3>Test Text-to-Speech:</h3>
+            
+            <label><strong>Select Language:</strong></label><br>
+            <button onclick="setLanguage('en-US')">🇬🇧 English</button>
+            <button onclick="setLanguage('fil-PH')">🇵🇭 Tagalog</button>
+            
+            <br><br>
+            <label><strong>Text to Read:</strong></label>
+            <textarea id="text-input">
+Once upon a time, there was a happy little bird who loved to sing. Every morning, the bird would wake up and sing beautiful songs for all the other animals in the forest. The bird's songs made everyone smile and feel joyful.
+            </textarea>
+            
+            <br>
+            <button id="speak-btn" onclick="speak()">🔊 Read Aloud</button>
+            <button id="stop-btn" class="stop-btn" onclick="stop()" style="display: none;">⏸️ Stop</button>
+            
+            <br><br>
+            <div id="speaking-status"></div>
+            
+            <details style="margin-top: 20px;">
+                <summary><strong>Available Voices (click to expand)</strong></summary>
+                <div id="voices" class="voice-list">Loading voices...</div>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let currentLang = 'en-US';
+        let voices = [];
+
+        // Check browser support
+        window.addEventListener('load', function() {
+            const statusDiv = document.getElementById('status');
+            
+            if ('speechSynthesis' in window) {
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = '✅ Your browser supports Text-to-Speech!';
+                document.getElementById('controls').style.display = 'block';
+                
+                // Load voices
+                loadVoices();
+                if (speechSynthesis.onvoiceschanged !== undefined) {
+                    speechSynthesis.onvoiceschanged = loadVoices;
+                }
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ Sorry, your browser does not support Text-to-Speech. Please try Chrome, Edge, or Safari.';
+            }
+        });
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            
+            const voiceList = document.getElementById('voices');
+            if (voices.length > 0) {
+                voiceList.innerHTML = voices.map((voice, index) => 
+                    `<div>${index + 1}. ${voice.name} (${voice.lang}) ${voice.default ? '⭐ Default' : ''}</div>`
+                ).join('');
+            }
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const statusDiv = document.getElementById('speaking-status');
+            statusDiv.innerHTML = `<div class="status info">Language set to: ${lang === 'en-US' ? '🇬🇧 English' : '🇵🇭 Tagalog'}</div>`;
+            
+            // Update sample text
+            const textarea = document.getElementById('text-input');
+            if (lang === 'fil-PH') {
+                textarea.value = 'Noong unang panahon, may isang masayang munting ibon na mahilig kumanta. Tuwing umaga, ang ibon ay gigising at kakanta ng magagandang awitin para sa lahat ng hayop sa gubat. Ang mga awitin ng ibon ay nagpapangiti at nagpapasaya sa lahat.';
+            } else {
+                textarea.value = 'Once upon a time, there was a happy little bird who loved to sing. Every morning, the bird would wake up and sing beautiful songs for all the other animals in the forest. The bird\'s songs made everyone smile and feel joyful.';
+            }
+        }
+
+        function speak() {
+            if (synth.speaking) {
+                alert('Already speaking! Stop first.');
+                return;
+            }
+
+            const text = document.getElementById('text-input').value;
+            if (!text.trim()) {
+                alert('Please enter some text to read.');
+                return;
+            }
+
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = currentLang;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            // Try to find appropriate voice
+            const voice = voices.find(v => v.lang === currentLang) || 
+                          voices.find(v => v.lang.startsWith(currentLang.split('-')[0])) ||
+                          voices[0];
+            
+            if (voice) {
+                utterance.voice = voice;
+                document.getElementById('speaking-status').innerHTML = 
+                    `<div class="status info">Using voice: ${voice.name}</div>`;
+            }
+
+            utterance.onstart = function() {
+                document.getElementById('speak-btn').style.display = 'none';
+                document.getElementById('stop-btn').style.display = 'inline-block';
+                document.getElementById('speaking-status').innerHTML += 
+                    '<div class="status success">🎵 Now reading aloud...</div>';
+            };
+
+            utterance.onend = function() {
+                document.getElementById('speak-btn').style.display = 'inline-block';
+                document.getElementById('stop-btn').style.display = 'none';
+                document.getElementById('speaking-status').innerHTML = 
+                    '<div class="status success">✅ Finished reading!</div>';
+            };
+
+            utterance.onerror = function(event) {
+                document.getElementById('speak-btn').style.display = 'inline-block';
+                document.getElementById('stop-btn').style.display = 'none';
+                document.getElementById('speaking-status').innerHTML = 
+                    `<div class="status error">❌ Error: ${event.error}</div>`;
+                console.error('Speech error:', event);
+            };
+
+            synth.speak(utterance);
+        }
+
+        function stop() {
+            synth.cancel();
+            document.getElementById('speak-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'none';
+            document.getElementById('speaking-status').innerHTML = 
+                '<div class="status info">⏸️ Stopped</div>';
+        }
+    </script>
+</body>
+</html>
