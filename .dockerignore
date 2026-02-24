@@ -37,7 +37,7 @@ node_modules
 /storage/framework/sessions/*
 /storage/framework/views/*.php
 
-# Docker meta files (not needed inside image, but entrypoint IS needed)
+# Docker meta files (not needed inside image, but entrypoint + vhost ARE needed)
 Dockerfile
 .dockerignore
 render.yaml

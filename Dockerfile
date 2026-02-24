@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 FROM php:8.1-apache
 
-# Install system dependencies
+# Install system dependencies + dos2unix to fix Windows line endings
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     zip \
     unzip \
+    dos2unix \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,17 +30,6 @@ RUN docker-php-ext-install \
     intl \
     xml
 
-# Enable Apache mod_rewrite (required for Laravel routes)
-RUN a2enmod rewrite
-
-# Point Apache DocumentRoot to Laravel's /public folder
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' \
-    /etc/apache2/sites-available/000-default.conf
-
-# Allow .htaccess overrides
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' \
-    /etc/apache2/apache2.conf
-
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -48,6 +38,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure Apache - enable mod_rewrite and set DocumentRoot to /public
+RUN a2enmod rewrite
+COPY docker-vhost.conf /etc/apache2/sites-available/000-default.conf
 
 # Set working directory
 WORKDIR /var/www/html
@@ -67,8 +61,7 @@ COPY . .
 RUN npm run build
 
 # Run composer post-install scripts after full copy
-RUN composer run-script post-autoload-dump --no-interaction \
-    || true
+RUN composer dump-autoload --no-dev --optimize
 
 # Fix storage & bootstrap/cache permissions
 RUN chown -R www-data:www-data \
@@ -78,9 +71,10 @@ RUN chown -R www-data:www-data \
     /var/www/html/storage \
     /var/www/html/bootstrap/cache
 
-# Copy and set up the Docker entrypoint
+# Copy and set up the Docker entrypoint (dos2unix fixes CRLF if any)
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
 
