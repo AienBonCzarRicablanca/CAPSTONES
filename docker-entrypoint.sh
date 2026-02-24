@@ -10,9 +10,16 @@ set -e
 # write it to a file and point MYSQL_ATTR_SSL_CA to it.
 if [ -n "$DB_SSL_CA_BASE64" ]; then
     echo "[entrypoint] Writing Aiven CA certificate..."
-    echo "$DB_SSL_CA_BASE64" | base64 -d > /etc/ssl/certs/aiven-ca.pem
-    export MYSQL_ATTR_SSL_CA=/etc/ssl/certs/aiven-ca.pem
-    echo "[entrypoint] MYSQL_ATTR_SSL_CA set to /etc/ssl/certs/aiven-ca.pem"
+    # Strip all whitespace/newlines from the base64 string before decoding
+    CLEAN_B64=$(echo "$DB_SSL_CA_BASE64" | tr -d ' \t\n\r')
+    echo "$CLEAN_B64" | base64 -d > /etc/ssl/certs/aiven-ca.pem 2>/dev/null
+    if [ $? -eq 0 ] && [ -s /etc/ssl/certs/aiven-ca.pem ]; then
+        export MYSQL_ATTR_SSL_CA=/etc/ssl/certs/aiven-ca.pem
+        echo "[entrypoint] MYSQL_ATTR_SSL_CA set to /etc/ssl/certs/aiven-ca.pem"
+    else
+        echo "[entrypoint] WARNING: DB_SSL_CA_BASE64 could not be decoded - skipping SSL cert"
+        rm -f /etc/ssl/certs/aiven-ca.pem
+    fi
 fi
 
 # --- Generate APP_KEY if not already set ---
